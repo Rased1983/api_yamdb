@@ -1,6 +1,6 @@
 from rest_framework import status, viewsets
 
-from reviews.models import User
+from users.models import User
 from api.serializers import UserSerializer
 from api.pagination import CustomPagination
 
