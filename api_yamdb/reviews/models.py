@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
@@ -86,4 +84,3 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ['-pub_date']
->>>>>>> titles/rewiev
