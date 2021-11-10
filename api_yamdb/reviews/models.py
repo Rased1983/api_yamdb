@@ -1,3 +1,5 @@
+import datetime as dt
+
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
@@ -21,16 +23,18 @@ class Category(models.Model):
 
 
 class Title(models.Model):
-    name = models.CharField('Название', max_length=200,)
-    year = models.IntegerField('Год выпуска', blank=True)
-    description = models.TextField()
-    genre = models.ManyToManyField(Genre, related_name='titles', blank=True)
+    name = models.CharField('Название', max_length=200)
+    year = models.IntegerField(
+        'Год выпуска',
+        validators=[
+        MaxValueValidator(dt.date.today().year)]
+    )
+    description = models.TextField(null=True, blank=True)
+    genre = models.ManyToManyField(Genre, related_name='titles')
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
         related_name='titles',
-        blank=True,
-        null=True
     )
 
 
@@ -40,7 +44,7 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name='reviews'
     )
-    text = models.TextField(blank=False)
+    text = models.TextField()
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -71,7 +75,7 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
         related_name='comments'
     )
-    text = models.TextField('текст коммента', blank=False)
+    text = models.TextField('текст коммента')
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

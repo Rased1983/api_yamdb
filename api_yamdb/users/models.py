@@ -5,8 +5,8 @@ from django.db import models
 
 class User(AbstractUser):
     
-    def username_validator(self):
-        if self.username == 'me':
+    def username_validator(username):
+        if username == 'me':
             raise ValidationError('Имя "me" зарезирвировано для системных нужд')
     
     USER_ROLES = (
