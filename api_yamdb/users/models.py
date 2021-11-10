@@ -1,8 +1,14 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
 class User(AbstractUser):
+    
+    def username_validator(self):
+        if self.username == 'me':
+            raise ValidationError('Имя "me" зарезирвировано для системных нужд')
+    
     USER_ROLES = (
         ('user', 'user'),
         ('moderator', 'moderator'),
@@ -12,6 +18,7 @@ class User(AbstractUser):
     username = models.CharField(
         max_length=150,
         unique=True,
+        validators=[username_validator],
     )
     email = models.EmailField(
         unique=True,

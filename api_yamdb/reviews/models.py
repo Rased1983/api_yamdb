@@ -21,7 +21,7 @@ class Category(models.Model):
 
 
 class Title(models.Model):
-    name = models.CharField('Название')
+    name = models.CharField('Название', max_length=200,)
     year = models.IntegerField('Год выпуска', blank=True)
     description = models.TextField()
     genre = models.ManyToManyField(Genre, related_name='titles', blank=True)
@@ -50,7 +50,7 @@ class Review(models.Model):
         'оценка',
         validators=[
             MinValueValidator(1), MaxValueValidator(10)]
-        )
+    )
     pub_date = models.DateTimeField(
         'дата отзыва', auto_now_add=True
     )
@@ -61,9 +61,9 @@ class Review(models.Model):
             models.UniqueConstraint(
                 fields=('title', 'author'),
                 name='%(app_label)s_%(class)s_rewiev_unique',
-                message='Нельзя оставлять больше одного отзыва на произведение'
             )
         ]
+
 
 class Comment(models.Model):
     review = models.ForeignKey(
