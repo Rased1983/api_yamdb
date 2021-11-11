@@ -27,7 +27,8 @@ class Title(models.Model):
     year = models.IntegerField(
         'Год выпуска',
         validators=[
-        MaxValueValidator(dt.date.today().year)]
+            MaxValueValidator(dt.date.today().year)
+        ]
     )
     description = models.TextField(null=True, blank=True)
     genre = models.ManyToManyField(Genre, related_name='titles')

@@ -1,5 +1,6 @@
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets, views
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
@@ -21,6 +22,8 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = (Admin, )
     pagination_class = PageNumberPagination
+    filter_backends = (DjangoFilterBackend, )
+    filterset_fields = ('username', )
     lookup_field = 'username'
     http_method_names = ('get', 'post', 'patch', 'delete', )
 
