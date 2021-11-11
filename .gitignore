@@ -149,7 +149,8 @@ dmypy.json
 media/
 
 # Migrations
-migrations/**
+migrations/
+!migrations/__init__.py
 
 # Mail
-sent_emails/**
+sent_emails/*
