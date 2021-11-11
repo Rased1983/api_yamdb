@@ -149,4 +149,7 @@ dmypy.json
 media/
 
 # Migrations
-migrations/
+migrations/**
+
+# Mail
+sent_emails/**
