@@ -2,13 +2,17 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from users.utils import random_code_for_user
+
 
 class User(AbstractUser):
-    
+
     def username_validator(username):
         if username == 'me':
-            raise ValidationError('Имя "me" зарезирвировано для системных нужд')
-    
+            raise ValidationError(
+                'Имя "me" зарезирвировано для системных нужд'
+            )
+
     USER_ROLES = (
         ('user', 'user'),
         ('moderator', 'moderator'),
@@ -22,7 +26,7 @@ class User(AbstractUser):
     )
     email = models.EmailField(
         unique=True,
-        max_length=254
+        max_length=254,
     )
     bio = models.TextField(
         blank=True,
@@ -33,18 +37,22 @@ class User(AbstractUser):
         choices=USER_ROLES,
         default='user',
     )
+    confirmation_code = models.CharField(
+        max_length=20,
+        default=random_code_for_user(),
+    )
+
+    class Meta:
+        ordering = ('id', )
 
     def __str__(self):
         return self.username
 
     @property
-    def is_user(self):
-        return self.role == self.ROLE_USER
-
-    @property
-    def is_admin(self):
-        return self.role == self.ROLE_ADMIN or self.is_superuser
-
-    @property
-    def is_moderator(self):
-        return self.role == self.ROLE_MODERATOR or self.is_admin
+    def is_who(self):
+        if self.is_superuser or self.role == 'admin':
+            return 'admin'
+        elif self.role == 'moderator':
+            return 'moderator'
+        else:
+            return 'user'
