@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
 from users.models import User
+from users.utils import random_code_for_user
 from api.serializers import (
     UserSerializer, EmailAndNewUserRegistrationSerializer, GetTokenSerializer
 )
@@ -26,6 +27,9 @@ class UserViewSet(viewsets.ModelViewSet):
     filterset_fields = ('username', )
     lookup_field = 'username'
     http_method_names = ('get', 'post', 'patch', 'delete', )
+
+    def perform_create(self, serializer):
+        serializer.save(confirmation_code=random_code_for_user())
 
     @action(detail=False, methods=['get', 'patch'],
             permission_classes=[IsAuthenticated])
@@ -54,7 +58,7 @@ class EmailAndNewUserRegistrationView(views.APIView):
             username = serializer.validated_data['username']
             email = serializer.validated_data['email']
             if not User.objects.filter(username=username).exists():
-                serializer.save()
+                serializer.save(confirmation_code=random_code_for_user())
             user = get_object_or_404(User, username=username)
             send_mail(
                 subject='Request of token',
