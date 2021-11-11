@@ -16,34 +16,34 @@ class User(AbstractUser):
     USER_ROLES = (
         ('user', 'user'),
         ('moderator', 'moderator'),
-        ('admin', 'admin'),
+        ('admin', 'admin')
     )
 
     username = models.CharField(
         max_length=150,
         unique=True,
-        validators=[username_validator],
+        validators=[username_validator]
     )
     email = models.EmailField(
         unique=True,
-        max_length=254,
+        max_length=254
     )
     bio = models.TextField(
         blank=True,
-        null=True,
+        null=True
     )
     role = models.TextField(
         max_length=10,
         choices=USER_ROLES,
-        default='user',
+        default='user'
     )
     confirmation_code = models.CharField(
         max_length=20,
-        default=random_code_for_user(),
+        default=random_code_for_user()
     )
 
     class Meta:
-        ordering = ('id', )
+        ordering = ['id']
 
     def __str__(self):
         return self.username
