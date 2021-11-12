@@ -21,9 +21,11 @@ class ReviewAdmin(admin.ModelAdmin):
     list_display = ('title', 'text', 'author', 'score', 'pub_date')
     search_fields = ('slug',)
 
+
 class CommentAdmin(admin.ModelAdmin):
     list_display = ('review', 'text', 'author', 'pub_date')
     search_fields = ('slug',)
+
 
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Genre, GenreAdmin)
