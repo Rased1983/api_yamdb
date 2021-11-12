@@ -10,8 +10,9 @@ from rest_framework_simplejwt.tokens import AccessToken
 
 from users.models import User
 from users.utils import random_code_for_user
+from reviews.models import Genre, Category
 from api.serializers import (
-    UserSerializer, EmailAndNewUserRegistrationSerializer, GetTokenSerializer
+    UserSerializer, EmailAndNewUserRegistrationSerializer, GetTokenSerializer, GenreSerializer, CategorySerializer
 )
 from api.permissions import (
     Admin, AuthorAdminModeratorOrReadOnly, AdminOrReadOnly
@@ -26,7 +27,7 @@ class UserViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend, )
     filterset_fields = ('username', )
     lookup_field = 'username'
-    http_method_names = ('get', 'post', 'patch', 'delete', )
+    http_method_names = ('get', 'post', 'patch', 'delete')
 
     def perform_create(self, serializer):
         serializer.save(confirmation_code=random_code_for_user())
@@ -88,3 +89,25 @@ class GetTokenView(views.APIView):
                 }, status=status.HTTP_200_OK
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GenreViewSet(viewsets.ModelViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    permission_classes = (AdminOrReadOnly, )
+    pagination_class = PageNumberPagination
+    filter_backends = (DjangoFilterBackend, )
+    filterset_fields = ('name', )
+    lookup_field = 'slug'
+    http_method_names = ('get', 'post', 'delete')
+
+
+class CategoryViewSet():
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = (AdminOrReadOnly, )
+    pagination_class = PageNumberPagination
+    filter_backends = (DjangoFilterBackend, )
+    filterset_fields = ('name', )
+    lookup_field = 'slug'
+    http_method_names = ('get', 'post', 'delete')

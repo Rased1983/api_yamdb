@@ -2,11 +2,13 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from api.views import (UserViewSet, GetTokenView,
-                       EmailAndNewUserRegistrationView)
+                       EmailAndNewUserRegistrationView, GenreViewSet, CategoryViewSet)
 
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='api_users')
+router.register('genres', GenreViewSet, basename='api_genres')
+router.register('categories', GenreViewSet, basename='api_categories')
 
 urlpatterns = [
     path('v1/', include(router.urls)),
