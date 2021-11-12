@@ -31,7 +31,7 @@ class GetTokenSerializer(serializers.ModelSerializer):
         user = get_object_or_404(User, username=value['username'])
         if user.confirmation_code != value['confirmation_code']:
             raise serializers.ValidationError(
-                "Не правильный токен юзера")
+                'Не правильный токен юзера')
         return value
 
     class Meta:
@@ -43,28 +43,33 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ("name", "slug")
+        fields = ('name', 'slug')
 
 
 class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genre
-        fields = ("name", "slug")
+        fields = ('name', 'slug')
 
 
-class TitleSerializer(serializers.ModelSerializer):
-    genre = serializers.SlugRelatedField(
-        queryset=Genre.objects.all(), slug_field="slug", many=True
-    )
-    category = serializers.SlugRelatedField(
-        queryset=Category.objects.all(), slug_field="slug"
-    )
-    rating = serializers.FloatField()
+class ReadTitleSerializer(serializers.ModelSerializer):
+    genre = GenreSerializer(read_only=True, many=True)
+    category = CategorySerializer(read_only=True)
+    rating = serializers.FloatField(read_only=True)
 
     class Meta:
-        fields = "__all__"
         model = Title
+        fields = '__all__'
+
+
+class WriteTitleSerializer(ReadTitleSerializer):
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(), slug_field='slug', many=True
+    )
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(), slug_field='slug'
+    )
 
 
 class ReviewSerializer(serializers.ModelSerializer):

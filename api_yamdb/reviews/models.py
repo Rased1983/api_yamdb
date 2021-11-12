@@ -38,6 +38,12 @@ class Title(models.Model):
         related_name='titles',
     )
 
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+
 
 class Review(models.Model):
     title = models.ForeignKey(
@@ -59,6 +65,9 @@ class Review(models.Model):
     pub_date = models.DateTimeField(
         'дата отзыва', auto_now_add=True
     )
+
+    def __str__(self):
+        return f'Отзыв к фильму: "{self.title}"'
 
     class Meta:
         ordering = ['-pub_date']
