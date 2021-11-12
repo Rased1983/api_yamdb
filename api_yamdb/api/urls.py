@@ -7,8 +7,8 @@ from api.views import (UserViewSet, GetTokenView,
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='api_users')
-router.register('genres', GenreViewSet, basename='api_genres')
-router.register('categories', GenreViewSet, basename='api_categories')
+router.register(r'genres', GenreViewSet, basename='api_genres')
+router.register(r'categories', GenreViewSet, basename='api_categories')
 
 urlpatterns = [
     path('v1/', include(router.urls)),
