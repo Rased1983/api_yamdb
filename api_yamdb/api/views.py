@@ -1,4 +1,4 @@
-from rest_framework import filters, mixins, status, viewsets, views
+from rest_framework import status, viewsets, views
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -10,7 +10,7 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 
-from reviews.models import Category, Comment, Genre, Review, Title
+from reviews.models import Category, Genre, Review, Title
 from users.models import User
 from users.utils import random_code_for_user
 from reviews.models import Genre, Category
@@ -108,7 +108,7 @@ class GenreViewSet(viewsets.ModelViewSet):
     http_method_names = ('get', 'post', 'delete')
 
 
-class CategoryViewSet():
+class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (AdminOrReadOnly, )
