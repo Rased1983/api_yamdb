@@ -14,13 +14,13 @@ from reviews.models import Category, Genre, Review, Title
 from users.models import User
 from users.utils import random_code_for_user
 from reviews.models import Genre, Category
-from api.serializers import (
-    UserSerializer, EmailAndNewUserRegistrationSerializer, GetTokenSerializer, GenreSerializer, CategorySerializer
-)
-from api.permissions import (
-    Admin, AuthorAdminModeratorOrReadOnly, AdminOrReadOnly
-)
-from .serializers import (CategorySerializer,CommentSerializer,
+from api.serializers import (UserSerializer,
+                             EmailAndNewUserRegistrationSerializer,
+                             GetTokenSerializer, GenreSerializer,
+                             CategorySerializer)
+from api.permissions import (Admin, AuthorAdminModeratorOrReadOnly,
+                             AdminOrReadOnly)
+from api.serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReadTitleSerializer,
                           ReviewSerializer, WriteTitleSerializer)
 
@@ -38,18 +38,17 @@ class UserViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(confirmation_code=random_code_for_user())
 
-    @action(detail=False, methods=['get', 'patch'],
+    @action(detail=False,
+            methods=['get', 'patch'],
             permission_classes=[IsAuthenticated])
     def me(self, request):
         serializer = self.get_serializer(request.user)
         if request.method == 'GET':
             return Response(data=serializer.data, status=status.HTTP_200_OK)
         if request.method == 'PATCH':
-            serializer = self.get_serializer(
-                request.user,
-                data=request.data,
-                partial=True
-            )
+            serializer = self.get_serializer(request.user,
+                                             data=request.data,
+                                             partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save(role=request.user.role)
             return Response(data=serializer.data)
@@ -73,11 +72,10 @@ class EmailAndNewUserRegistrationView(views.APIView):
                          f'username: {username}\n'
                          f'confirmation_code: {user.confirmation_code}'),
                 from_email='yamdb@mail.com',
-                recipient_list=(email,),
+                recipient_list=(email, ),
             )
-            return Response(
-                serializer.validated_data, status=status.HTTP_200_OK
-            )
+            return Response(serializer.validated_data,
+                            status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -89,11 +87,8 @@ class GetTokenView(views.APIView):
         if serializer.is_valid():
             username = serializer.validated_data['username']
             user = get_object_or_404(User, username=username)
-            return Response(
-                {
-                    'token': str(AccessToken.for_user(user))
-                }, status=status.HTTP_200_OK
-            )
+            return Response({'token': str(AccessToken.for_user(user))},
+                            status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -120,9 +115,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.annotate(
-        rating=Avg('reviews__score'))
-    permission_classes = (AdminOrReadOnly)
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
+    permission_classes = (AdminOrReadOnly, )
+    pagination_class = PageNumberPagination
 
     def get_serializer_class(self):
         if self.request.method in ["POST", "PATCH"]:
@@ -131,8 +126,10 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
+    queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = (AuthorAdminModeratorOrReadOnly,)
+    permission_classes = (AuthorAdminModeratorOrReadOnly, )
+    pagination_class = PageNumberPagination
 
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
@@ -145,12 +142,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (AuthorAdminModeratorOrReadOnly,)
+    permission_classes = (AuthorAdminModeratorOrReadOnly, )
+    pagination_class = PageNumberPagination
 
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
-        review = get_object_or_404(
-            Review, title=title, id=self.kwargs['review_id'])
+        review = get_object_or_404(Review,
+                                   title=title,
+                                   id=self.kwargs['review_id'])
         return review.comments.all()
 
     def perform_create(self, serializer):

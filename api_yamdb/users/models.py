@@ -20,25 +20,30 @@ class User(AbstractUser):
     username = models.CharField(
         max_length=150,
         unique=True,
-        validators=[username_validator]
+        validators=[username_validator],
+        verbose_name='Никнейм',
     )
     email = models.EmailField(
         unique=True,
-        max_length=254
+        max_length=254,
+        verbose_name='Электронная почта',
     )
     bio = models.TextField(
         blank=True,
-        null=True
+        null=True,
+        verbose_name='Биография',
     )
     role = models.TextField(
         max_length=10,
         choices=USER_ROLES,
-        default='user'
+        default='user',
+        verbose_name='Роль пользователя',
     )
     confirmation_code = models.CharField(
         max_length=20,
         null=True,
-        blank=True
+        blank=True,
+        verbose_name='Код подтверждения',
     )
 
     class Meta:
