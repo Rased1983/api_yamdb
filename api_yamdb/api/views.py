@@ -12,8 +12,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
+from users.utils import random_code_for_user
+from reviews.models import Genre, Category
 from api.serializers import (
-    UserSerializer, EmailAndNewUserRegistrationSerializer, GetTokenSerializer
+    UserSerializer, EmailAndNewUserRegistrationSerializer, GetTokenSerializer, GenreSerializer, CategorySerializer
 )
 from api.permissions import (
     Admin, AuthorAdminModeratorOrReadOnly, AdminOrReadOnly
@@ -31,7 +33,10 @@ class UserViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend, )
     filterset_fields = ('username', )
     lookup_field = 'username'
-    http_method_names = ('get', 'post', 'patch', 'delete', )
+    http_method_names = ('get', 'post', 'patch', 'delete')
+
+    def perform_create(self, serializer):
+        serializer.save(confirmation_code=random_code_for_user())
 
     @action(detail=False, methods=['get', 'patch'],
             permission_classes=[IsAuthenticated])
@@ -60,7 +65,7 @@ class EmailAndNewUserRegistrationView(views.APIView):
             username = serializer.validated_data['username']
             email = serializer.validated_data['email']
             if not User.objects.filter(username=username).exists():
-                serializer.save()
+                serializer.save(confirmation_code=random_code_for_user())
             user = get_object_or_404(User, username=username)
             send_mail(
                 subject='Request of token',
@@ -92,26 +97,26 @@ class GetTokenView(views.APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CategoryViewSet(mixins.CreateModelMixin,
-                      mixins.DestroyModelMixin,
-                      mixins.ListModelMixin,
-                      viewsets.GenericViewSet):
-    queryset = Category.objects.all()
-    permission_classes = (AdminOrReadOnly)
-    serializer_class = CategorySerializer
-    filter_backends = (filters.SearchFilter)
-    search_fields = ('name',)
-
-
-class GenreViewSet(mixins.CreateModelMixin,
-                   mixins.DestroyModelMixin,
-                   mixins.ListModelMixin,
-                   viewsets.GenericViewSet):
+class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
-    permission_classes = (AdminOrReadOnly)
     serializer_class = GenreSerializer
-    filter_backends = (filters.SearchFilter)
-    search_fields = ('name',)
+    permission_classes = (AdminOrReadOnly, )
+    pagination_class = PageNumberPagination
+    filter_backends = (DjangoFilterBackend, )
+    filterset_fields = ('name', )
+    lookup_field = 'slug'
+    http_method_names = ('get', 'post', 'delete')
+
+
+class CategoryViewSet():
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = (AdminOrReadOnly, )
+    pagination_class = PageNumberPagination
+    filter_backends = (DjangoFilterBackend, )
+    filterset_fields = ('name', )
+    lookup_field = 'slug'
+    http_method_names = ('get', 'post', 'delete')
 
 
 class TitleViewSet(viewsets.ModelViewSet):

@@ -2,8 +2,6 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from users.utils import random_code_for_user
-
 
 class User(AbstractUser):
 
@@ -39,7 +37,8 @@ class User(AbstractUser):
     )
     confirmation_code = models.CharField(
         max_length=20,
-        default=random_code_for_user()
+        null=True,
+        blank=True
     )
 
     class Meta:
