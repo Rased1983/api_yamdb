@@ -1,4 +1,4 @@
-from rest_framework import status, viewsets, views
+from rest_framework import status, viewsets, views, mixins, filters
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -17,12 +17,12 @@ from reviews.models import Genre, Category
 from api.serializers import (UserSerializer,
                              EmailAndNewUserRegistrationSerializer,
                              GetTokenSerializer, GenreSerializer,
-                             CategorySerializer)
+                             CategorySerializer, ReviewSerializer,
+                             CommentSerializer,ReadTitleSerializer,
+                             WriteTitleSerializer)
 from api.permissions import (Admin, AuthorAdminModeratorOrReadOnly,
                              AdminOrReadOnly)
-from api.serializers import (CategorySerializer, CommentSerializer,
-                             GenreSerializer, ReadTitleSerializer,
-                             ReviewSerializer, WriteTitleSerializer)
+from api.filters import SpecialTitlesFilter
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -30,8 +30,8 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = (Admin, )
     pagination_class = PageNumberPagination
-    filter_backends = (DjangoFilterBackend, )
-    filterset_fields = ('username', )
+    filter_backends = (filters.SearchFilter, )
+    search_fields = ('username', )
     lookup_field = 'username'
     http_method_names = ('get', 'post', 'patch', 'delete')
 
@@ -59,8 +59,29 @@ class EmailAndNewUserRegistrationView(views.APIView):
         serializer = EmailAndNewUserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
             username = serializer.validated_data['username']
+            if username == 'me':
+                return Response(
+                    {
+                        "username":
+                        ['Имя "me" зарезирвировано для системных нужд']
+                    },
+                    status=status.HTTP_400_BAD_REQUEST)
             email = serializer.validated_data['email']
-            if not User.objects.filter(username=username).exists():
+            if User.objects.filter(email=email).exists():
+                return Response(
+                    {
+                        "email":
+                        ['Данный почтовый адрес уже занят!']
+                    },
+                    status=status.HTTP_400_BAD_REQUEST)
+            if User.objects.filter(username=username).exists():
+                return Response(
+                    {
+                        "username":
+                        ['Данное имя уже занято!']
+                    },
+                    status=status.HTTP_400_BAD_REQUEST)
+            else:
                 serializer.save()
             user = get_object_or_404(User, username=username)
             user.confirmation_code = random_code_for_user()
@@ -91,24 +112,30 @@ class GetTokenView(views.APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(viewsets.GenericViewSet,
+                   mixins.ListModelMixin,
+                   mixins.CreateModelMixin,
+                   mixins.DestroyModelMixin):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = (AdminOrReadOnly, )
     pagination_class = PageNumberPagination
-    filter_backends = (DjangoFilterBackend, )
-    filterset_fields = ('name', )
+    filter_backends = (filters.SearchFilter, )
+    search_fields = ('name', )
     lookup_field = 'slug'
     http_method_names = ('get', 'post', 'delete')
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(viewsets.GenericViewSet,
+                      mixins.ListModelMixin,
+                      mixins.CreateModelMixin,
+                      mixins.DestroyModelMixin):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (AdminOrReadOnly, )
     pagination_class = PageNumberPagination
-    filter_backends = (DjangoFilterBackend, )
-    filterset_fields = ('name', )
+    filter_backends = (filters.SearchFilter, )
+    search_fields = ('name', )
     lookup_field = 'slug'
     http_method_names = ('get', 'post', 'delete')
 
@@ -117,6 +144,9 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(rating=Avg('reviews__score'))
     permission_classes = (AdminOrReadOnly, )
     pagination_class = PageNumberPagination
+    filter_backends = (DjangoFilterBackend, )
+    filterset_class = SpecialTitlesFilter
+    filterset_fields = ('category', 'genre', 'name', 'year')
 
     def get_serializer_class(self):
         if self.request.method in ["POST", "PATCH"]:
