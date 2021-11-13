@@ -1,28 +1,25 @@
-from rest_framework import status, viewsets, views, mixins, filters
+from django.core.mail import send_mail
+from django.db.models import Avg
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, mixins, status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
-from django.core.mail import send_mail
-from django.db.models import Avg
-from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
-
+from api.filters import SpecialTitlesFilter
+from api.permissions import (Admin, AdminOrReadOnly,
+                             AuthorAdminModeratorOrReadOnly)
+from api.serializers import (CategorySerializer, CommentSerializer,
+                             EmailAndNewUserRegistrationSerializer,
+                             GenreSerializer, GetTokenSerializer,
+                             ReadTitleSerializer, ReviewSerializer,
+                             UserSerializer, WriteTitleSerializer)
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 from users.utils import random_code_for_user
-from reviews.models import Genre, Category
-from api.serializers import (UserSerializer,
-                             EmailAndNewUserRegistrationSerializer,
-                             GetTokenSerializer, GenreSerializer,
-                             CategorySerializer, ReviewSerializer,
-                             CommentSerializer,ReadTitleSerializer,
-                             WriteTitleSerializer)
-from api.permissions import (Admin, AuthorAdminModeratorOrReadOnly,
-                             AdminOrReadOnly)
-from api.filters import SpecialTitlesFilter
 
 
 class UserViewSet(viewsets.ModelViewSet):
