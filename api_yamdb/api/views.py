@@ -21,8 +21,8 @@ from api.serializers import (UserSerializer,
 from api.permissions import (Admin, AuthorAdminModeratorOrReadOnly,
                              AdminOrReadOnly)
 from api.serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, ReadTitleSerializer,
-                          ReviewSerializer, WriteTitleSerializer)
+                             GenreSerializer, ReadTitleSerializer,
+                             ReviewSerializer, WriteTitleSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -34,9 +34,6 @@ class UserViewSet(viewsets.ModelViewSet):
     filterset_fields = ('username', )
     lookup_field = 'username'
     http_method_names = ('get', 'post', 'patch', 'delete')
-
-    def perform_create(self, serializer):
-        serializer.save(confirmation_code=random_code_for_user())
 
     @action(detail=False,
             methods=['get', 'patch'],
@@ -64,8 +61,10 @@ class EmailAndNewUserRegistrationView(views.APIView):
             username = serializer.validated_data['username']
             email = serializer.validated_data['email']
             if not User.objects.filter(username=username).exists():
-                serializer.save(confirmation_code=random_code_for_user())
+                serializer.save()
             user = get_object_or_404(User, username=username)
+            user.confirmation_code = random_code_for_user()
+            user.save()
             send_mail(
                 subject='Request of token',
                 message=(f'Приятного времени суток!\n'

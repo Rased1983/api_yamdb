@@ -42,9 +42,7 @@ class Title(models.Model):
         verbose_name='Название',
     )
     year = models.IntegerField(
-        validators=[
-            MaxValueValidator(dt.date.today().year)
-        ],
+        validators=[MaxValueValidator(dt.date.today().year)],
         verbose_name='Год выпуска',
     )
     description = models.TextField(null=True, blank=True)
@@ -74,9 +72,7 @@ class Review(models.Model):
         related_name='reviews',
         verbose_name='Оглавление',
     )
-    text = models.TextField(
-        verbose_name='Текст',
-    )
+    text = models.TextField(verbose_name='Текст', )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -84,10 +80,9 @@ class Review(models.Model):
         verbose_name='Пользователь',
     )
     score = models.IntegerField(
-        validators=[
-            MinValueValidator(1), MaxValueValidator(10)],
+        validators=[MinValueValidator(1),
+                    MaxValueValidator(10)],
         verbose_name='оценка',
-
     )
     pub_date = models.DateTimeField(
         auto_now_add=True,
@@ -114,9 +109,7 @@ class Comment(models.Model):
         related_name='comments',
         verbose_name='Отзыв',
     )
-    text = models.TextField(
-        verbose_name='текст комментария',
-    )
+    text = models.TextField(verbose_name='текст комментария', )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

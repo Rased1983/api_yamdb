@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
+from rest_framework.exceptions import ValidationError
+from rest_framework.relations import SlugRelatedField
 
 from django.shortcuts import get_object_or_404
 
@@ -57,7 +58,8 @@ class ReadTitleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = '__all__'
+        fields = ('id', 'name', 'year', 'rating', 'description', 'genre',
+                  'category')
 
 
 class WriteTitleSerializer(ReadTitleSerializer):
@@ -72,13 +74,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
 
     class Meta:
-        fields = (
-            'id',
-            'author',
-            'text',
-            'score',
-            'pub_date',
-        )
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
         model = Review
 
     def validate(self, value):
@@ -97,5 +93,5 @@ class CommentSerializer(serializers.ModelSerializer):
                                           slug_field='username')
 
     class Meta:
-        fields = '__all__'
+        fields = ('id', 'text', 'author', 'pub_date')
         model = Comment
