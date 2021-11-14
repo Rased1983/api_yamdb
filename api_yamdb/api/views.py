@@ -1,13 +1,13 @@
-from django.core.mail import send_mail
-from django.db.models import Avg
-from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
+from django.core.mail import send_mail
+from django.db.models import Avg
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 
 from api.filters import SpecialTitlesFilter
 from api.permissions import (Admin, AdminOrReadOnly,
@@ -78,8 +78,7 @@ class EmailAndNewUserRegistrationView(views.APIView):
                         ['Данное имя уже занято!']
                     },
                     status=status.HTTP_400_BAD_REQUEST)
-            else:
-                serializer.save()
+            serializer.save()
             user = get_object_or_404(User, username=username)
             user.confirmation_code = random_code_for_user()
             user.save()
@@ -120,7 +119,6 @@ class GenreViewSet(viewsets.GenericViewSet,
     filter_backends = (filters.SearchFilter, )
     search_fields = ('name', )
     lookup_field = 'slug'
-    http_method_names = ('get', 'post', 'delete')
 
 
 class CategoryViewSet(viewsets.GenericViewSet,
@@ -134,7 +132,6 @@ class CategoryViewSet(viewsets.GenericViewSet,
     filter_backends = (filters.SearchFilter, )
     search_fields = ('name', )
     lookup_field = 'slug'
-    http_method_names = ('get', 'post', 'delete')
 
 
 class TitleViewSet(viewsets.ModelViewSet):
