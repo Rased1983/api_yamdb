@@ -1,0 +1,39 @@
+POST http://127.0.0.1:8000/api/v1/jwt/create/
+Content-Type: application/json
+
+{
+    "username": "Rased1",
+    "password": "Rasedd1"
+}
+
+###
+GET http://127.0.0.1:8000/api/v1/follow/
+Content-Type: application/json
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjQzOTg4MDI2LCJqdGkiOiIyMjg2NTNkZTBjMGI0ZDljYmNiODAyOTZjOGVkNGQ1OSIsInVzZXJfaWQiOjF9.itpDNHr23LTjYVp8e7l5KFiI5jOB_UcP2_OzyDFGyL0
+
+###
+POST http://127.0.0.1:8000/api/v1/follow/
+Content-Type: application/json
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjQzOTg4MDI2LCJqdGkiOiIyMjg2NTNkZTBjMGI0ZDljYmNiODAyOTZjOGVkNGQ1OSIsInVzZXJfaWQiOjF9.itpDNHr23LTjYVp8e7l5KFiI5jOB_UcP2_OzyDFGyL0
+
+{
+    "following": "Rased1"
+}
+###
+GET http://127.0.0.1:8000/api/v1/follow/
+Content-Type: application/json
+###
+PATCH http://127.0.0.1:8000/api/v1/posts/1/
+Content-Type: application/json
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjQzOTg4MDI2LCJqdGkiOiIyMjg2NTNkZTBjMGI0ZDljYmNiODAyOTZjOGVkNGQ1OSIsInVzZXJfaWQiOjF9.itpDNHr23LTjYVp8e7l5KFiI5jOB_UcP2_OzyDFGyL0
+
+{
+    "text": "Тестовый пост 1"
+}
+###
+GET http://127.0.0.1:8000/api/v1/posts/
+Content-Type: application/json
+
+{
+    "text": "Тестовый пост non-authorized"
+}
