@@ -47,9 +47,10 @@ class Title(models.Model):
         max_length=200,
         verbose_name='Название',
     )
-    year = models.IntegerField(
+    year = models.PositiveSmallIntegerField(
         validators=[MaxValueValidator(dt.date.today().year)],
         verbose_name='Год выпуска',
+        db_index=True,
     )
     description = models.TextField(null=True, blank=True)
     genre = models.ManyToManyField(
@@ -59,9 +60,10 @@ class Title(models.Model):
     )
     category = models.ForeignKey(
         Category,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name='titles',
         verbose_name='Категория',
+        null=True,
     )
 
     def __str__(self):
