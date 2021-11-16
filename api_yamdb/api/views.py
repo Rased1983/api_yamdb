@@ -22,6 +22,13 @@ from users.models import User
 from users.utils import random_code_for_user
 
 
+class SpecialCastomMixin(viewsets.GenericViewSet,
+                         mixins.ListModelMixin,
+                         mixins.CreateModelMixin,
+                         mixins.DestroyModelMixin):
+    pass
+
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -36,17 +43,15 @@ class UserViewSet(viewsets.ModelViewSet):
             methods=['get', 'patch'],
             permission_classes=[IsAuthenticated])
     def me(self, request):
-        serializer = self.get_serializer(request.user)
         if request.method == 'GET':
+            serializer = self.get_serializer(request.user)
             return Response(data=serializer.data, status=status.HTTP_200_OK)
-        if request.method == 'PATCH':
-            serializer = self.get_serializer(request.user,
-                                             data=request.data,
-                                             partial=True)
-            serializer.is_valid(raise_exception=True)
-            serializer.save(role=request.user.role)
-            return Response(data=serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(request.user,
+                                        data=request.data,
+                                        partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(role=request.user.role)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
 class EmailAndNewUserRegistrationView(views.APIView):
@@ -108,10 +113,7 @@ class GetTokenView(views.APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class GenreViewSet(viewsets.GenericViewSet,
-                   mixins.ListModelMixin,
-                   mixins.CreateModelMixin,
-                   mixins.DestroyModelMixin):
+class GenreViewSet(SpecialCastomMixin):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = (AdminOrReadOnly, )
@@ -121,10 +123,7 @@ class GenreViewSet(viewsets.GenericViewSet,
     lookup_field = 'slug'
 
 
-class CategoryViewSet(viewsets.GenericViewSet,
-                      mixins.ListModelMixin,
-                      mixins.CreateModelMixin,
-                      mixins.DestroyModelMixin):
+class CategoryViewSet(SpecialCastomMixin):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (AdminOrReadOnly, )

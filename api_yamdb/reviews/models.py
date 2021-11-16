@@ -17,11 +17,11 @@ class Genre(models.Model):
         verbose_name='slug',
     )
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         ordering = ['name']
+
+    def __str__(self):
+        return self.name
 
 
 class Category(models.Model):
@@ -35,11 +35,11 @@ class Category(models.Model):
         verbose_name='slug',
     )
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         ordering = ['name']
+
+    def __str__(self):
+        return self.name
 
 
 class Title(models.Model):
@@ -92,9 +92,6 @@ class Review(models.Model):
         verbose_name='Дата отзыва',
     )
 
-    def __str__(self):
-        return f'Отзыв к фильму: "{self.title}", автор: {self.author}'
-
     class Meta:
         ordering = ['-pub_date']
         constraints = [
@@ -103,6 +100,9 @@ class Review(models.Model):
                 name='%(app_label)s_%(class)s_rewiev_unique',
             )
         ]
+
+    def __str__(self):
+        return f'Отзыв к фильму: "{self.title}", автор: {self.author}'
 
 
 class Comment(models.Model):
