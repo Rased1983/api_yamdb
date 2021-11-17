@@ -15,11 +15,11 @@ from api.permissions import (Admin, AdminOrReadOnly,
 from api.serializers import (CategorySerializer, CommentSerializer,
                              EmailAndNewUserRegistrationSerializer,
                              GenreSerializer, GetTokenSerializer,
-                             ReadTitleSerializer, ReviewSerializer,
-                             UserSerializer, WriteTitleSerializer)
+                             ReviewSerializer,UserSerializer,
+                             TitleSerializer)
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
-from users.utils import random_code_for_user
+from users.utils import random_code_for_user, send_confirmation_code
 
 
 class SpecialCastomMixin(viewsets.GenericViewSet,
@@ -61,40 +61,12 @@ class EmailAndNewUserRegistrationView(views.APIView):
         serializer = EmailAndNewUserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
             username = serializer.validated_data['username']
-            if username == 'me':
-                return Response(
-                    {
-                        "username":
-                        ['Имя "me" зарезирвировано для системных нужд']
-                    },
-                    status=status.HTTP_400_BAD_REQUEST)
             email = serializer.validated_data['email']
-            if User.objects.filter(email=email).exists():
-                return Response(
-                    {
-                        "email":
-                        ['Данный почтовый адрес уже занят!']
-                    },
-                    status=status.HTTP_400_BAD_REQUEST)
-            if User.objects.filter(username=username).exists():
-                return Response(
-                    {
-                        "username":
-                        ['Данное имя уже занято!']
-                    },
-                    status=status.HTTP_400_BAD_REQUEST)
             serializer.save()
             user = get_object_or_404(User, username=username)
             user.confirmation_code = random_code_for_user()
             user.save()
-            send_mail(
-                subject='Request of token',
-                message=(f'Приятного времени суток!\n'
-                         f'username: {username}\n'
-                         f'confirmation_code: {user.confirmation_code}'),
-                from_email='yamdb@mail.com',
-                recipient_list=(email, ),
-            )
+            send_confirmation_code(user)
             return Response(serializer.validated_data,
                             status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -136,16 +108,12 @@ class CategoryViewSet(SpecialCastomMixin):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(
         rating=Avg('reviews__score')).order_by('name')
+    serializer_class = TitleSerializer
     permission_classes = (AdminOrReadOnly, )
     pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend, )
     filterset_class = SpecialTitlesFilter
     filterset_fields = ('category', 'genre', 'name', 'year')
-
-    def get_serializer_class(self):
-        if self.request.method in ["POST", "PATCH"]:
-            return WriteTitleSerializer
-        return ReadTitleSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
