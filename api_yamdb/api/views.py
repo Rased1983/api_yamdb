@@ -1,10 +1,10 @@
 from rest_framework import filters, mixins, status, views, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-from django.core.mail import send_mail
+from django.contrib.auth.tokens import default_token_generator
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -15,11 +15,11 @@ from api.permissions import (Admin, AdminOrReadOnly,
 from api.serializers import (CategorySerializer, CommentSerializer,
                              EmailAndNewUserRegistrationSerializer,
                              GenreSerializer, GetTokenSerializer,
-                             ReviewSerializer,UserSerializer,
+                             ReviewSerializer, UserSerializer,
                              TitleSerializer)
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
-from users.utils import random_code_for_user, send_confirmation_code
+from users.utils import send_confirmation_code
 
 
 class SpecialCastomMixin(viewsets.GenericViewSet,
@@ -47,42 +47,40 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(request.user)
             return Response(data=serializer.data, status=status.HTTP_200_OK)
         serializer = self.get_serializer(request.user,
-                                        data=request.data,
-                                        partial=True)
+                                         data=request.data,
+                                         partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save(role=request.user.role)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
-class EmailAndNewUserRegistrationView(views.APIView):
-    permission_classes = (AllowAny, )
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def email_and_new_user_registration(request):
+    serializer = EmailAndNewUserRegistrationSerializer(data=request.data)
+    if serializer.is_valid():
+        username = serializer.validated_data['username']
+        email = serializer.validated_data['email']
+        user = User.objects.get_or_create(username=username, email=email)
+        user = user[0]
+        user.confirmation_code = default_token_generator.make_token(user)
+        user.save()
+        send_confirmation_code(user)
+        return Response(serializer.validated_data,
+                        status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request):
-        serializer = EmailAndNewUserRegistrationSerializer(data=request.data)
-        if serializer.is_valid():
-            username = serializer.validated_data['username']
-            email = serializer.validated_data['email']
-            serializer.save()
-            user = get_object_or_404(User, username=username)
-            user.confirmation_code = random_code_for_user()
-            user.save()
-            send_confirmation_code(user)
-            return Response(serializer.validated_data,
-                            status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-class GetTokenView(views.APIView):
-    permission_classes = (AllowAny, )
-
-    def post(self, request):
-        serializer = GetTokenSerializer(data=request.data)
-        if serializer.is_valid():
-            username = serializer.validated_data['username']
-            user = get_object_or_404(User, username=username)
-            return Response({'token': str(AccessToken.for_user(user))},
-                            status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def get_token(request):
+    serializer = GetTokenSerializer(data=request.data)
+    if serializer.is_valid():
+        username = serializer.validated_data['username']
+        user = get_object_or_404(User, username=username)
+        return Response({'token': str(AccessToken.for_user(user))},
+                        status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GenreViewSet(SpecialCastomMixin):
@@ -106,8 +104,7 @@ class CategoryViewSet(SpecialCastomMixin):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.annotate(
-        rating=Avg('reviews__score')).order_by('name')
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
     serializer_class = TitleSerializer
     permission_classes = (AdminOrReadOnly, )
     pagination_class = PageNumberPagination

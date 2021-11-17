@@ -1,7 +1,8 @@
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.relations import SlugRelatedField
+from django.contrib.auth.tokens import default_token_generator
+from django.shortcuts import get_object_or_404
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
@@ -27,13 +28,21 @@ class EmailAndNewUserRegistrationSerializer(serializers.ModelSerializer):
         if value == 'me':
             raise ValidationError(
                 'Имя "me" зарезирвировано для системных нужд')
-        if User.objects.filter(username=value).exists():
-            raise ValidationError('Данное имя уже занято!')
         return value
 
-    def validate_email(self, value):
-        if User.objects.filter(email=value).exists():
-            raise ValidationError('Данный почтовый адрес уже занят!')
+    def validate(self, value):
+        username = value['username']
+        email = value['email']
+        user1_isexists = User.objects.filter(username=username).exists()
+        user2_isexists = User.objects.filter(email=email).exists()
+        if user1_isexists and user2_isexists:
+            user1 = User.objects.get(username=username)
+            user2 = User.objects.get(email=email)
+            if user1 != user2:
+                raise ValidationError('Имя или почта указаны неверно!')
+            return value
+        if user1_isexists or user2_isexists:
+            raise ValidationError('Имя или почта уже заняты!')
         return value
 
 
@@ -47,7 +56,8 @@ class GetTokenSerializer(serializers.ModelSerializer):
 
     def validate(self, value):
         user = get_object_or_404(User, username=value['username'])
-        if user.confirmation_code != value['confirmation_code']:
+        token = value['confirmation_code']
+        if not default_token_generator.check_token(user, token):
             raise ValidationError('Не правильный токен юзера')
         return value
 

@@ -66,6 +66,9 @@ class Title(models.Model):
         null=True,
     )
 
+    class Meta:
+        ordering = ['-year']
+
     def __str__(self):
         return self.name
 
