@@ -1,4 +1,4 @@
-from rest_framework import filters, mixins, status, views, viewsets
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
