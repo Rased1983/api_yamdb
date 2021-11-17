@@ -8,6 +8,7 @@ from users.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
+
     class Meta:
         fields = ('username', 'email', 'first_name', 'last_name', 'bio',
                   'role')
@@ -22,51 +23,68 @@ class EmailAndNewUserRegistrationSerializer(serializers.ModelSerializer):
         fields = ('username', 'email')
         model = User
 
+    def validate_username(self, value):
+        if value == 'me':
+            raise ValidationError(
+                'Имя "me" зарезирвировано для системных нужд')
+        if User.objects.filter(username=value).exists():
+            raise ValidationError('Данное имя уже занято!')
+        return value
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise ValidationError('Данный почтовый адрес уже занят!')
+        return value
+
 
 class GetTokenSerializer(serializers.ModelSerializer):
     username = serializers.CharField(required=True)
     confirmation_code = serializers.CharField(required=True)
 
-    def validate(self, value):
-        user = get_object_or_404(User, username=value['username'])
-        if user.confirmation_code != value['confirmation_code']:
-            raise serializers.ValidationError('Не правильный токен юзера')
-        return value
-
     class Meta:
         fields = ('username', 'confirmation_code')
         model = User
 
+    def validate(self, value):
+        user = get_object_or_404(User, username=value['username'])
+        if user.confirmation_code != value['confirmation_code']:
+            raise ValidationError('Не правильный токен юзера')
+        return value
+
 
 class CategorySerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Category
         fields = ('name', 'slug')
 
 
 class GenreSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Genre
         fields = ('name', 'slug')
 
 
-class ReadTitleSerializer(serializers.ModelSerializer):
-    genre = GenreSerializer(read_only=True, many=True)
-    category = CategorySerializer(read_only=True)
+class CustomSlugRelatedField(serializers.SlugRelatedField):
+
+    def to_representation(self, value):
+        return {"name": value.name, 'slug': value.slug}
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    genre = CustomSlugRelatedField(
+        queryset=Genre.objects.all(), slug_field='slug', many=True
+    )
+    category = CustomSlugRelatedField(
+        queryset=Category.objects.all(), slug_field='slug'
+    )
     rating = serializers.FloatField(read_only=True)
 
     class Meta:
+        fields = ('id', 'name', 'year', 'rating',
+                  'description', 'genre', 'category')
         model = Title
-        fields = ('id', 'name', 'year', 'rating', 'description', 'genre',
-                  'category')
-
-
-class WriteTitleSerializer(ReadTitleSerializer):
-    genre = serializers.SlugRelatedField(queryset=Genre.objects.all(),
-                                         slug_field='slug',
-                                         many=True)
-    category = serializers.SlugRelatedField(queryset=Category.objects.all(),
-                                            slug_field='slug')
 
 
 class ReviewSerializer(serializers.ModelSerializer):
