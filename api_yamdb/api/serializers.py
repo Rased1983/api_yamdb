@@ -58,7 +58,7 @@ class GetTokenSerializer(serializers.ModelSerializer):
         user = get_object_or_404(User, username=value['username'])
         token = value['confirmation_code']
         if not default_token_generator.check_token(user, token):
-            raise ValidationError('Не правильный токен юзера')
+            raise ValidationError('Неправильный токен юзера')
         return value
 
 

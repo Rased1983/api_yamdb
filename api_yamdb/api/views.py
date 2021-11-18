@@ -58,29 +58,27 @@ class UserViewSet(viewsets.ModelViewSet):
 @permission_classes([AllowAny])
 def email_and_new_user_registration(request):
     serializer = EmailAndNewUserRegistrationSerializer(data=request.data)
-    if serializer.is_valid():
-        username = serializer.validated_data['username']
-        email = serializer.validated_data['email']
-        user = User.objects.get_or_create(username=username, email=email)
-        user = user[0]
-        user.confirmation_code = default_token_generator.make_token(user)
-        user.save()
-        send_confirmation_code(user)
-        return Response(serializer.validated_data,
-                        status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    serializer.is_valid(raise_exception=True)
+    username = serializer.validated_data['username']
+    email = serializer.validated_data['email']
+    user = User.objects.get_or_create(username=username, email=email)
+    user = user[0]
+    user.confirmation_code = default_token_generator.make_token(user)
+    user.save()
+    send_confirmation_code(user)
+    return Response(serializer.validated_data,
+                    status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def get_token(request):
     serializer = GetTokenSerializer(data=request.data)
-    if serializer.is_valid():
-        username = serializer.validated_data['username']
-        user = get_object_or_404(User, username=username)
-        return Response({'token': str(AccessToken.for_user(user))},
-                        status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    serializer.is_valid(raise_exception=True)
+    username = serializer.validated_data['username']
+    user = get_object_or_404(User, username=username)
+    return Response({'token': str(AccessToken.for_user(user))},
+                    status=status.HTTP_200_OK)
 
 
 class GenreViewSet(SpecialCastomMixin):
@@ -134,12 +132,12 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         review = get_object_or_404(Review,
-                                   title_id=self.kwargs['title_id'],
+                                   title__id=self.kwargs['title_id'],
                                    id=self.kwargs['review_id'])
         return review.comments.all()
 
     def perform_create(self, serializer):
         review = get_object_or_404(Review,
-                                   title_id=self.kwargs['title_id'],
+                                   title__id=self.kwargs['title_id'],
                                    id=self.kwargs['review_id'])
         serializer.save(review=review, author=self.request.user)
