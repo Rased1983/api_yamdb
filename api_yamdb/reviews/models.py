@@ -102,7 +102,7 @@ class Review(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=('title', 'author'),
-                name='%(app_label)s_%(class)s_rewiev_unique',
+                name='rewiev_unique_name',
             )
         ]
 
